@@ -1,6 +1,6 @@
 from neodict2xml import dict2xml
 import xml.etree.ElementTree as et
-
+import json
 def tests_ref(data,operators_list):
     if type(data)==dict:
         for key in data.keys():
@@ -63,6 +63,8 @@ with open(file,'r',encoding='utf-8') as text:
          else:
              if len(spisok_obj[group_obj])>1:
                 dict_obj[spisok_obj[group_obj][0]['id']]=spisok_obj[group_obj][1]
+             else:
+                 dict_obj[spisok_obj[group_obj][0]['id']]='Отсутсвуют параметры'
      spisok_states=dannie['{http://oval.mitre.org/XMLSchema/oval-definitions-5}oval_definitions'][1]['{http://oval.mitre.org/XMLSchema/oval-definitions-5}states']
      dict_states={}
      for group_state in spisok_states.keys():
@@ -125,3 +127,5 @@ print(final['definitions'].keys())
 criteria_obrabotka(final['definitions']['oval:com.redhat.rhba:def:20193384']['vulner_criteria'],0)
 #Получение информации об уязвимости
 print(final['definitions']['oval:com.redhat.rhba:def:20193384'])
+with open('result.json', 'w') as file_json:
+    json.dump(final,file_json)
