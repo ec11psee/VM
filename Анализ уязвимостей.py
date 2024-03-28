@@ -1,6 +1,8 @@
 from neodict2xml import dict2xml
 import xml.etree.ElementTree as et
 import json
+
+#вычленение всех тестов, которые используются для обнаружения уязвимости
 def tests_ref(data,operators_list):
     if type(data)==dict:
         for key in data.keys():
@@ -14,7 +16,7 @@ def tests_ref(data,operators_list):
         for elemnt in data:
             tests_ref(elemnt,operators_list)
     return(operators_list)
-
+#Функция отображения критериев для понимания структуры критерия
 def criteria_obrabotka(crit,lvl):
     if type(crit)==tuple:
         if 'operator' in crit[0].keys():
@@ -36,6 +38,35 @@ def criteria_obrabotka(crit,lvl):
     if type(crit)==list:
         for el in crit:
             criteria_obrabotka(el,lvl+1)
+#Если нужно преобразовать критерии в словарь использовать эту функцию
+def criteria_obrabotka_to_dict(crit):
+    if type(crit)==tuple:
+        if 'operator' in crit[0].keys():
+            dict_criteria={}
+            dict_criteria[crit[0]['operator']]=[]
+            #print('-'*lvl,crit[0]['operator'])
+            for i in range(1,len(crit)):
+                dict_criteria[crit[0]['operator']].append(criteria_obrabotka_to_dict(crit[i]))
+        else:
+            dict_criteria={'comment':crit[0]['comment']}
+    elif type(crit)==dict:
+        if '{http://oval.mitre.org/XMLSchema/oval-definitions-5}criterion' in crit.keys():
+            dict_criteria=[]
+            if type(crit['{http://oval.mitre.org/XMLSchema/oval-definitions-5}criterion'][0])!=tuple:
+                #добавить в словарь необходимые объекты вместо comment
+                dict_criteria.append({'comment':crit['{http://oval.mitre.org/XMLSchema/oval-definitions-5}criterion'][0]['comment']})
+            else:
+                for elem in crit['{http://oval.mitre.org/XMLSchema/oval-definitions-5}criterion']:
+                    #добавить в словарь необходимые объекты вместо comment
+                    dict_criteria.append({'comment':elem[0]['comment']})
+        if '{http://oval.mitre.org/XMLSchema/oval-definitions-5}criteria' in crit.keys():
+            dict_criteria=criteria_obrabotka_to_dict(crit['{http://oval.mitre.org/XMLSchema/oval-definitions-5}criteria'])
+    elif type(crit)==list:
+        dict_criteria=[]
+        for el in crit:
+            dict_criteria.append(criteria_obrabotka_to_dict(el))
+    return (dict_criteria)
+
 file='rhel-8.oval.xml'
 
 with open(file,'r',encoding='utf-8') as text:
